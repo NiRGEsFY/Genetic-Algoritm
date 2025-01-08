@@ -147,7 +147,7 @@ namespace ConsoleApp14
                     {
                         int numberOfChanceMutation = rand.Next(0, 100);
                         if (numberOfChanceMutation <= mutationChance)
-                            parentValueGen += rand.Next(-200, 200);
+                            parentValueGen += rand.Next(-50, 50);
                     }
                         
                     child.Gens[i].Value = parentValueGen;
@@ -171,6 +171,7 @@ namespace ConsoleApp14
         }
         public int Value(bool force)
         {
+            /*
             if (force)
                 return Value();
             if(TempValue == 0)
@@ -178,6 +179,30 @@ namespace ConsoleApp14
                 return Value();
             }
             return TempValue;
+            */
+            return formula(Gens[0].GetValue(), Gens[1].GetValue(), Gens[2].GetValue(), Gens[3].GetValue(), Gens[4].GetValue());
+        }
+        public int formula(int u, int w, int x, int y, int z)
+        {
+            int powU = 2; int powW = 2; int powX = 1; int powY = 1; int powZ = 0;
+            int powU1 = 0; int powW1 = 1; int powX1 = 1; int powY1 = 1; int powZ1 = 2;
+            int powU2 = 2; int powW2 = 2; int powX2 = 1; int powY2 = 2; int powZ2 = 0;
+            int powU3 = 1; int powW3 = 0; int powX3 = 1; int powY3 = 0; int powZ3 = 1;
+            int powU4 = 0; int powW4 = 0; int powX4 = 0; int powY4 = 1; int powZ4 = 0;
+            int answerToBe = 40;
+            var result = u ^ powU * w ^ powW * x ^ powX * y ^ powY * z ^ powZ + u ^ powU1 * w ^ powW1 * x ^ powX1 * y ^ powY1 * z ^ powZ1 + u ^ powU2 * w ^ powW2 * x ^ powX2 * y ^ powY2 * z ^ powZ2 + u ^ powU3 * w ^ powW3 * x ^ powX3 * y ^ powY3 * z ^ powZ3 + u ^ powU4 * w ^ powW4 * x ^ powX4 * y ^ powY4 * z ^ powZ4;
+            if (answerToBe == result)
+                return 100;
+            else
+            {
+                if (result <= 0)
+                    result -= answerToBe;
+
+                if (result > answerToBe)
+                    return 100 - result;
+                else
+                    return 100 - Math.Abs(result);
+            }
         }
         public int CompareTo(Chromosome? other)
         {
@@ -202,6 +227,7 @@ namespace ConsoleApp14
         public int GensCount { get; private set; }
         public Chromosomes(int lenght, int countGen)
         {
+            ChildChromosomesArray = new List<Chromosome>();
             GensCount = countGen;
             MutationProccent = 25;
             ParentProccentToBe = 50;
@@ -223,7 +249,13 @@ namespace ConsoleApp14
             }
             foreach (var item in orderList)
             {
-                luckyChance += item.TempValue + negativeLuck;
+                
+                if (item.TempValue == 0)
+                    item.Value(true);
+                int itemValue = item.TempValue;
+                if (itemValue == 0)
+                    itemValue++;
+                luckyChance += itemValue + negativeLuck;
                 luckList.Add(luckyChance, item);
             }
             Random rand = new Random();
@@ -257,10 +289,9 @@ namespace ConsoleApp14
         }
         public void Selection()
         {
-            if(ChildChromosomesArray.DefaultIfEmpty().Count() == 0)
-            {
-                CreateChildChoromosomesArray();
-            }
+
+            CreateChildChoromosomesArray();
+
             ChildChromosomesArray.Sort();
             int startIndex = (ChromosomesArray.Count() * 100 - ChromosomesArray.Count() * ParentProccentToBe)/100;
             for (int i = startIndex; i < ChromosomesArray.Count();i++)
@@ -268,6 +299,8 @@ namespace ConsoleApp14
                 ChromosomesArray[i] = ChildChromosomesArray[i];
             }
             SortByDescending();
+
+            ChildChromosomesArray = new List<Chromosome>();
         }
         public override string ToString()
         {
@@ -297,6 +330,12 @@ namespace ConsoleApp14
                 Console.Write("\n");
                 iteration++;
             }
+        }
+        public bool CheckAnswer()
+        {
+            if (ChromosomesArray.FirstOrDefault(x => x.Value(false) == 100) is null)
+                return false;
+            return true;
         }
         public void ChildsToConsole()
         {
@@ -378,12 +417,33 @@ namespace ConsoleApp14
         
         static void Main(string[] args)
         {
-            int lenght = 0;
-            int gens = 0;
+            int lenght = 50;
+            int gens = 5;
+            var genetics = new Chromosomes(lenght, gens);
+            genetics.MutationProccent = 25;
+            genetics.ParentProccentToBe = 25;
+            int key = 1;
+            if (genetics.CheckAnswer())
+            {
+                Console.WriteLine("Решение найдено блять");
+            };
+
+            while (!genetics.CheckAnswer())
+            {
+                Console.WriteLine($"==========================================");
+
+                genetics.Selection();
+                genetics.ToConsole();
+
+                Console.WriteLine($"==========================================");
+            }
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"Ответ: {genetics.ChromosomesArray.FirstOrDefault(x => x.Value(false) == 100)}");
+
+
+            /*
             int mutation = 25;
             int parents = 50;
-            var genetics = new Chromosomes(0, 0);
-            int key = 1;
             void MenuToConsole()
             {
                 Console.ForegroundColor = ConsoleColor.White;
@@ -442,8 +502,8 @@ namespace ConsoleApp14
                                   "8 - Создание новых хоромосом\n" +
                                   "9 - Скрещивание\n");
             }
-            
-            
+            */
+            /*
             while (key > 0)
             {
                 MenuToConsole();
@@ -522,6 +582,7 @@ namespace ConsoleApp14
                 }
                 Console.Clear();
             }
+            */
         }
     }
 }
